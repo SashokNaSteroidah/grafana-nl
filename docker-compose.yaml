@@ -1,3 +1,13 @@
+x-def-logging: &default-logging
+  logging:
+    driver: "loki"
+    options:
+      loki-url: "http://127.0.0.1:3100/loki/api/v1/push"
+      loki-batch-size: "100"
+      loki-retries: 2
+      loki-max-backoff: 1000ms
+      loki-timeout: 1s
+
 services:
   grafana:
     image: grafana/grafana-enterprise
@@ -17,8 +27,7 @@ services:
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       - loki_data:/loki
-      - ./configs/loki/loki-config.yaml:/etc/loki/local-config.yaml
 
 volumes:
-  grafana-storage: {}
-  loki_data: {}
+  grafana-storage:
+  loki_data:
