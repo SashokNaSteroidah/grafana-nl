@@ -222,6 +222,12 @@ discovery.relabel "docker" {
 
       rule {
           source_labels = ["__meta_docker_container_name"]
+          regex         = "/amnezia-awg2"
+          action        = "drop"
+      }
+
+      rule {
+          source_labels = ["__meta_docker_container_name"]
           regex = "/(.*)"
           target_label = "container_name"
       }
@@ -239,16 +245,4 @@ loki.source.docker "default" {
   targets    = discovery.docker.logs.targets
   relabel_rules = discovery.relabel.docker.rules
   forward_to = [loki.write.local.receiver]
-}
-
-// Process and filter Docker logs before sending to Loki.
-// Example: Drop logs from infrastructure containers.
-// Modify the regex pattern to match container names you want to exclude.
-loki.process "docker_logs" {
-  forward_to = [loki.write.local.receiver]
-
-  stage.drop {
-    source     = "container_name"
-    expression = "(alloy|grafana|loki)"
-  }
 }
