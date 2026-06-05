@@ -50,7 +50,7 @@ prometheus.scrape "scraper" {
 
 discovery.relabel "prometheus" {
   targets = [{
-    __address__ = "http://prometheus:9090",
+    __address__ = "prometheus:9090",
   }]
 
   rule {
@@ -75,7 +75,7 @@ prometheus.scrape "prometheus" {
 
 discovery.relabel "loki" {
   targets = [{
-    __address__ = "http://loki:3100",
+    __address__ = "loki:3100",
   }]
 
   rule {
