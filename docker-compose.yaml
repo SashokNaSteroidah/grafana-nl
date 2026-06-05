@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   grafana:
     image: grafana/grafana-enterprise
@@ -21,36 +23,56 @@ services:
   prometheus:
     image: prom/prometheus
     restart: unless-stopped
+    container_name: prometheus
     ports:
       - "9090:9090"
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - "--web.enable-remote-write-receiver"
     volumes:
       - prometheus:/prometheus \
       - ./configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
 
-  node-exporter:
-    image: quay.io/prometheus/node-exporter:latest
-    restart: unless-stopped
-    expose:
-      - "9100"
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-      - '--collector.systemd'
-      - '--collector.processes'
-      - '--collector.interrupts'
-      - '--collector.tcpstat'
+  alloy:
+    image: grafana/alloy
+    container_name: alloy
+    hostname: "nl"
+    ports:
+      - "12345:12345"
     volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
+      - alloy_data:/var/lib/alloy/data
+      - ./configs/alloy/config.alloy:/etc/alloy/config.alloy
+      - /proc:/rootproc:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /run/containerd/containerd.sock:/run/containerd/containerd.sock:ro
+      - /run:/run:ro
+      - /sys:/sys:ro
       - /:/rootfs:ro
-      - /run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro
+      - /dev/disk/:/dev/disk:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - "8080:8080"
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+
 
 volumes:
   grafana-storage:
   loki_data:
   prometheus:
+  alloy_data:
