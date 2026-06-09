@@ -8,13 +8,13 @@ loki.write "infra" {
 prometheus.remote_write "infra" {
   endpoint {
     url = env("PROM_URL")
-  }
 
   // BUFF
-  queue_config {
-    capacity             = 10000
-    max_samples_per_send = 2000
-    batch_send_deadline  = "5s"
+    queue_config {
+      capacity             = 10000
+      max_samples_per_send = 2000
+      batch_send_deadline  = "5s"
+    }
   }
 }
 
