@@ -1,56 +1,23 @@
 version: "3.8"
 
 services:
-  grafana:
-    image: grafana/grafana-enterprise
-    container_name: grafana
-    restart: unless-stopped
-    ports:
-      - '3000:3000'
-    volumes:
-      - grafana-storage:/var/lib/grafana
-
-  loki:
-    image: grafana/loki
-    container_name: loki
-    restart: unless-stopped
-    ports:
-      - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
-    volumes:
-      - loki_data:/loki
-
-  prometheus:
-    image: prom/prometheus
-    restart: unless-stopped
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - "--web.enable-remote-write-receiver"
-    volumes:
-      - prometheus:/prometheus \
-      - ./configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
 
   alloy:
     image: grafana/alloy
     container_name: alloy
     hostname: "nl"
+    restart: unless-stopped
+    networks:
+      - nl
     ports:
       - "12345:12345"
     volumes:
       - alloy_data:/var/lib/alloy/data
-      - ./configs/alloy/config.alloy:/etc/alloy/config.alloy
-      - /proc:/rootproc:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /run/containerd/containerd.sock:/run/containerd/containerd.sock:ro
-      - /run:/run:ro
-      - /sys:/sys:ro
-      - /:/rootfs:ro
-      - /dev/disk/:/dev/disk:ro
-      - /var/lib/docker/:/var/lib/docker:ro
+      - ./configs/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/log/journal:/var/log/journal:ro
+      - /run/log/journal:/run/log/journal:ro
+      - /etc/machine-id:/etc/machine-id:ro
     command:
       - run
       - --server.http.listen-addr=0.0.0.0:12345
@@ -60,19 +27,39 @@ services:
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
+    restart: unless-stopped
+    networks:
+      - nl
     ports:
       - "8080:8080"
-    privileged: true
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
+    privileged: true
+
+  node_exporter:
+    image: prom/node-exporter
+    container_name: node_exporter
+    restart: unless-stopped
+    networks:
+      - nl
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/rootfs
+      - --collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)
 
 
 volumes:
-  grafana-storage:
-  loki_data:
-  prometheus:
   alloy_data:
+
+networks:
+  nl:
+    driver: bridge
