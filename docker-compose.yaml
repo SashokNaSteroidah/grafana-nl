@@ -8,6 +8,8 @@ services:
       - nl
     ports:
       - "12345:12345"
+    labels:
+      logging: "true"
     volumes:
       - alloy_data:/var/lib/alloy/data
       - ./configs/alloy/config.alloy:/etc/alloy/config.alloy:ro
@@ -32,6 +34,8 @@ services:
       - nl
     ports:
       - "8080:8080"
+    labels:
+      logging: "true"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
@@ -46,6 +50,8 @@ services:
     networks:
       - nl
     pid: host
+    labels:
+      logging: "true"
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro

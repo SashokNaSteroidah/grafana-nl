@@ -25,7 +25,7 @@ prometheus.remote_write "infra" {
 prometheus.scrape "node" {
   targets = [{
     "__address__" = "node_exporter:9100",
-    "job"         = "node",
+    "job"         = "node_nl",
     "host"        = constants.hostname,
   }]
   forward_to      = [prometheus.remote_write.infra.receiver]
@@ -36,7 +36,7 @@ prometheus.scrape "node" {
 prometheus.scrape "cadvisor" {
   targets = [{
     "__address__" = "cadvisor:8080",
-    "job"         = "cadvisor",
+    "job"         = "cadvisor_nl",
     "host"        = constants.hostname,
   }]
   forward_to      = [prometheus.remote_write.infra.receiver]
@@ -79,58 +79,14 @@ discovery.relabel "containers" {
 loki.source.docker "containers" {
   host       = "unix:///var/run/docker.sock"
   targets    = discovery.relabel.containers.output
-  forward_to = [loki.process.containers.receiver]
-}
-
-// PARSING LOGS
-loki.process "containers" {
-  stage.json {
-    expressions = {
-      level   = "level",
-      message = "message",
-    }
-  }
-
-  stage.labels {
-    values = {
-      level = "",
-    }
-  }
-
   forward_to = [loki.write.infra.receiver]
 }
 
-
 // JOURNAL
 loki.source.journal "system" {
-  forward_to = [loki.process.journal.receiver]
+  forward_to = [loki.write.infra.receiver]
   labels = {
     job  = "systemd",
     host = constants.hostname,
   }
-}
-
-
-// SYSTEMD UNIT LABEL PARSING
-loki.process "journal" {
-  stage.json {
-    expressions = {
-      unit     = "_SYSTEMD_UNIT",
-      priority = "PRIORITY",
-    }
-  }
-
-  stage.labels {
-    values = {
-      unit = "",
-    }
-  }
-
-  // DELETE DEBUG LABELS
-  stage.drop {
-    expression  = ".*debug.*"
-    drop_counter_reason = "debug_filtered"
-  }
-
-  forward_to = [loki.write.infra.receiver]
 }
