@@ -20,6 +20,9 @@ services:
       - --server.http.listen-addr=0.0.0.0:12345
       - --storage.path=/var/lib/alloy/data
       - /etc/alloy/config.alloy
+    environment:
+      - LOKI_URL=${LOKI_URL}
+      - PROM_URL=${PROM_URL}
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
