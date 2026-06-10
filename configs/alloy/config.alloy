@@ -47,7 +47,7 @@ prometheus.relabel "cadvisor" {
 
     rule {
       target_label = "instance"
-      replacement  = "infra"
+      replacement  = "nl"
     }
 
   rule {
