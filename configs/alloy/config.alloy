@@ -39,8 +39,17 @@ prometheus.scrape "cadvisor" {
     "job"         = "cadvisor_nl",
     "host"        = constants.hostname,
   }]
-  forward_to      = [prometheus.remote_write.infra.receiver]
+  forward_to      = [prometheus.relabel.cadvisor.receiver]
   scrape_interval = "30s"
+}
+
+prometheus.relabel "cadvisor" {
+  forward_to = [prometheus.remote_write.infra.receiver]
+
+  rule {
+    target_label = "machine_name"
+    replacement  = "nl"  // Replace with your specific host name
+  }
 }
 
 

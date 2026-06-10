@@ -6,8 +6,6 @@ services:
     restart: unless-stopped
     networks:
       - nl
-    ports:
-      - "12345:12345"
     labels:
       logging: "true"
     volumes:
