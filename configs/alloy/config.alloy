@@ -1,13 +1,13 @@
 // TARGETS
 loki.write "infra" {
   endpoint {
-    url = env("LOKI_URL")
+    url = sys.env("LOKI_URL")
   }
 }
 
 prometheus.remote_write "infra" {
   endpoint {
-    url = env("PROM_URL")
+    url = sys.env("PROM_URL")
 
   // BUFF
     queue_config {
