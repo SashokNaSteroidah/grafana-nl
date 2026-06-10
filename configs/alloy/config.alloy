@@ -47,8 +47,8 @@ prometheus.relabel "cadvisor" {
   forward_to = [prometheus.remote_write.infra.receiver]
 
   rule {
-    target_label = "machine_name"
-    replacement  = "nl"  // Replace with your specific host name
+    target_label = "instance"
+    replacement  = "nl"
   }
 }
 
